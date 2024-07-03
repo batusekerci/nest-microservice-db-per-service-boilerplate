@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("USERS_DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../../generated/users"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-1.0.x"]
+  previewFeatures = ["prismaSchemaFolder", "multiSchema"]
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  password String
+}

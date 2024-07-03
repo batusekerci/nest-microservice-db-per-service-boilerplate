@@ -1,0 +1,108 @@
+version: '3.8'
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
+    command: yarn run start:dev api-gateway
+    depends_on:
+    - rabbitmq
+    volumes:
+    - "./:/app"
+    - /app/node_modules
+    ports:
+    - '8030:3000'
+    env_file:
+      - "./.env"
+
+  devices:
+    build:
+      context: .
+      dockerfile: ./apps/devices/Dockerfile
+    command: yarn run start:dev devices && npx prisma migrate dev --schema libs/prisma/schema/devices/schema.prisma
+    depends_on:
+    - rabbitmq
+    - devices-db
+    - api-gateway
+    ports:
+    - '8031:3000'
+    volumes:
+    - .:/app
+    - /app/node_modules
+
+  users:
+    build:
+      context: .
+      dockerfile: ./apps/users/Dockerfile
+    command: yarn run start:dev users && npx prisma migrate dev --schema libs/prisma/schema/users/schema.prisma
+    depends_on:
+    - rabbitmq
+    - users-db
+    - api-gateway
+    ports:
+    - '8032:3000'
+    volumes:
+    - .:/app
+    - /app/node_modules
+
+  jobs:
+    build:
+      context: .
+      dockerfile: ./apps/jobs/Dockerfile
+    command: yarn run start:dev jobs && npx prisma migrate dev --schema libs/prisma/schema/jobs/schema.prisma
+    depends_on:
+    - rabbitmq
+    - jobs-db
+    - api-gateway
+    ports:
+    - '8033:3000'
+    volumes:
+    - .:/app
+    - /app/node_modules
+
+  users-db:
+    image: postgres:14-alpine
+    volumes:
+      - users-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Openzeka.1234
+      - POSTGRES_DB=users
+    ports:
+      - 5001:5432
+    
+  devices-db:
+    image: postgres:14-alpine
+    volumes:
+      - devices-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Openzeka.1234
+      - POSTGRES_DB=devices
+    ports:
+      - 5002:5432
+  
+  jobs-db:
+    image: postgres:14-alpine
+    volumes:
+      - jobs-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Openzeka.1234
+      - POSTGRES_DB=jobs
+    ports:
+      - 5003:5432
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    volumes:
+    - /var/lib/rabbitmq
+    ports:
+    - "5672:5672"
+    - "15672:15672"
+volumes:
+  users-db:
+  devices-db:
+  jobs-db:

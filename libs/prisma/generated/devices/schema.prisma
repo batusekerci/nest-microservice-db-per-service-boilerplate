@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DEVICES_DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../../generated/devices"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-1.0.x"]
+  previewFeatures = ["prismaSchemaFolder", "multiSchema"]
+}
+
+model Device {
+  id     Int @id @default(autoincrement())
+  userId Int
+  // user     User   @relation(fields: [userId], references: [id])
+}
